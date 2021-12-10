@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { MessageToastService } from '@fundamental-ngx/core/message-toast';
 
 @Component({
     selector: 'fd-dynamic-page-column-layout-example',
@@ -33,6 +34,8 @@ export class DynamicPageColumnLayoutExampleComponent {
      */
     localLayout = 'OneColumnStartFullScreen';
 
+    constructor(private _messageToastService: MessageToastService) {}
+
     /**
      * this function is reacting to events (button clicks) and
      * updates the local property which sets a new layout for the component.
@@ -56,5 +59,14 @@ export class DynamicPageColumnLayoutExampleComponent {
 
     closePage(): void {
         this.visible = false;
+    }
+
+    handleAction(action: string): void {
+        this.closePage();
+        this._openToast(action);
+    }
+
+    private _openToast(content: string): void {
+        this._messageToastService.open(content, { duration: 3000 });
     }
 }
