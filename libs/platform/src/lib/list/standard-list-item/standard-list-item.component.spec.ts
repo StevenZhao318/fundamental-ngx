@@ -94,7 +94,7 @@ describe('StandardListItemComponent', () => {
     `
 })
 class StandardListItemDataSourceTestComponent {
-    @ViewChild(ListComponent, { static: true }) component: ListComponent;
+    @ViewChild(ListComponent, { static: true }) component: ListComponent<Address>;
     @ViewChild(StandardListItemComponent, { static: true }) childComponent: StandardListItemComponent;
     public dataSource = new ListDataSource<Address>(new ListDataProvider());
 }
