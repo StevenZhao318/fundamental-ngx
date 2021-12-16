@@ -2,19 +2,14 @@ import {
     ChangeDetectionStrategy,
     ChangeDetectorRef,
     Component,
-    ContentChildren,
     ElementRef,
     forwardRef,
     Input,
-    Optional,
-    QueryList,
     ViewEncapsulation
 } from '@angular/core';
-import { Router } from '@angular/router';
 
 import { BaseListItem, StatusType } from '../base-list-item';
 import { ListConfig } from '../list.config';
-import { ObjectListItemRowComponent } from './object-list-item-row.component';
 
 @Component({
     selector: 'fdp-object-list-item',
@@ -77,22 +72,12 @@ export class ObjectListItemComponent extends BaseListItem {
     @Input()
     transparent: boolean;
 
-    @ContentChildren(ObjectListItemRowComponent)
-    children: QueryList<ObjectListItemRowComponent>;
-
-    /**
-     * @hidden
-     * Used to define if contentDensity value is 'compact' or not.
-     */
-    isCompact = this._contentDensity === 'compact';
-
     /** @hidden */
     constructor(
         _changeDetectorRef: ChangeDetectorRef,
-        public itemEl: ElementRef,
-        protected _listConfig: ListConfig,
-        @Optional() protected _router: Router
+        public itemEl: ElementRef<HTMLElement>,
+        protected _listConfig: ListConfig
     ) {
-        super(_changeDetectorRef, itemEl, _listConfig, _router);
+        super(_changeDetectorRef, itemEl, _listConfig);
     }
 }

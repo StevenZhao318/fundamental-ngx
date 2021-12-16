@@ -1,7 +1,5 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, forwardRef, Optional } from '@angular/core';
-import { Router } from '@angular/router';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, forwardRef } from '@angular/core';
 
-import { ContentDensity } from '@fundamental-ngx/core/utils';
 import { BaseListItem } from '../base-list-item';
 import { ListConfig } from '../list.config';
 
@@ -13,21 +11,11 @@ import { ListConfig } from '../list.config';
 })
 export class StandardListItemComponent extends BaseListItem {
     /** @hidden */
-    _contentDensity: ContentDensity = this._listConfig.contentDensity;
-
-    /**
-     * @hidden
-     * Used to define if contentDensity value is 'compact' or not.
-     */
-    isCompact = this._contentDensity === 'compact';
-
-    /** @hidden */
     constructor(
         _changeDetectorRef: ChangeDetectorRef,
-        public itemEl: ElementRef,
-        protected _listConfig: ListConfig,
-        @Optional() _router: Router
+        public itemEl: ElementRef<HTMLElement>,
+        protected _listConfig: ListConfig
     ) {
-        super(_changeDetectorRef, itemEl, _listConfig, _router);
+        super(_changeDetectorRef, itemEl, _listConfig);
     }
 }
