@@ -1,4 +1,5 @@
 import {
+    AfterContentInit,
     AfterViewInit,
     ChangeDetectionStrategy,
     ChangeDetectorRef,
@@ -21,7 +22,6 @@ import { DynamicPageService } from '../../dynamic-page.service';
 import { DynamicPageGlobalActionsComponent } from '../actions/dynamic-page-global-actions.component';
 import { DynamicPageTitleContentComponent } from '../actions/dynamic-page-title-content.component';
 import { DynamicPageLayoutActionsComponent } from '../actions/dynamic-page-layout-actions.component';
-import { DYNAMIC_PAGE_HEADER_COMPONENT, DynamicPageHeaderInterface } from '@fundamental-ngx/core/utils';
 import { DYNAMIC_PAGE_CLASS_NAME, DynamicPageResponsiveSize } from '../../constants';
 import { addClassNameToElement } from '../../utils';
 
@@ -35,15 +35,9 @@ export const ActionSquashBreakpointPx = 1280;
     encapsulation: ViewEncapsulation.None,
     host: {
         '[attr.tabindex]': '0'
-    },
-    providers: [
-        {
-            provide: DYNAMIC_PAGE_HEADER_COMPONENT,
-            useExisting: DynamicPageHeaderComponent
-        }
-    ]
+    }
 })
-export class DynamicPageHeaderComponent implements DynamicPageHeaderInterface, OnInit, AfterViewInit, OnDestroy {
+export class DynamicPageHeaderComponent implements OnInit, AfterViewInit, AfterContentInit, OnDestroy {
     /** Title property for dynamic page */
     @Input()
     title: string;
@@ -97,6 +91,13 @@ export class DynamicPageHeaderComponent implements DynamicPageHeaderInterface, O
     }
 
     /** @hidden */
+    ngAfterContentInit(): void {
+        this._breadcrumbComponent?.tabOut.pipe(takeUntil(this._onDestroy$)).subscribe(() => {
+            this._layoutActions?.toolbarComponent.toolbar.nativeElement.children[0].focus();
+        });
+    }
+
+    /** @hidden */
     ngOnDestroy(): void {
         this._onDestroy$.next();
         this._onDestroy$.complete();
@@ -114,13 +115,6 @@ export class DynamicPageHeaderComponent implements DynamicPageHeaderInterface, O
     /** @hidden */
     stopPropagation(event: MouseEvent): void {
         event.stopPropagation();
-    }
-
-    /** @hidden
-     * Set focus on first child when the tab out event fires from Breadcrumbs
-     */
-    focusLayoutAction(): void {
-        this._layoutActions?.toolbarComponent.toolbar.nativeElement.children[0].focus();
     }
 
     /**

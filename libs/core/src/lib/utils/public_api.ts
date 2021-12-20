@@ -61,8 +61,6 @@ export * from './abstract-fd-ngx-class';
 
 export * from './list-item/list-item-utils';
 
-export * from './dynamic-page/dynamic-page.utils';
-
 export * from './mixins/apply-mixin';
 
 export * from './services/focus-trap.service';
