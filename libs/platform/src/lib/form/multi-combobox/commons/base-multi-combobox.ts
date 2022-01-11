@@ -17,6 +17,7 @@ import {
     ViewChild
 } from '@angular/core';
 import { NgControl, NgForm } from '@angular/forms';
+import { SafeHtml } from '@angular/platform-browser';
 import {
     BACKSPACE,
     CONTROL,
@@ -30,8 +31,8 @@ import {
     UP_ARROW
 } from '@angular/cdk/keycodes';
 
-import { BehaviorSubject, fromEvent, isObservable, Observable, Subject, Subscription } from 'rxjs';
-import { filter, takeUntil, tap } from 'rxjs/operators';
+import { BehaviorSubject, fromEvent, isObservable, Observable, Subject, Subscription, timer } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import equal from 'fast-deep-equal';
 
 import { DialogConfig } from '@fundamental-ngx/core/dialog';
@@ -58,6 +59,7 @@ import {
     ObservableMultiComboBoxDataSource,
     SelectableOptionItem
 } from '@fundamental-ngx/platform/shared';
+
 import { TextAlignment } from '../../combobox';
 import { MultiComboboxConfig } from '../multi-combobox.config';
 
@@ -95,8 +97,10 @@ export abstract class BaseMultiCombobox extends CollectionBaseInput implements A
     @Input()
     autoComplete = true;
 
-    /** Content Density of element.
-     * Can be 'cozy', 'compact'. */
+    /**
+     * Content Density of element.
+     * Can be 'cozy', 'compact'.
+     */
     @Input()
     set contentDensity(contentDensity: ContentDensity) {
         this._contentDensity = contentDensity;
@@ -125,11 +129,11 @@ export abstract class BaseMultiCombobox extends CollectionBaseInput implements A
 
     /** A field name to use to group data by (support dotted notation). */
     @Input()
-    groupKey?: string;
+    groupKey: string;
 
     /** The field to show data in secondary column. */
     @Input()
-    secondaryKey?: string;
+    secondaryKey: string;
 
     /** Show the second column (applicable for two columns layout). */
     @Input()
@@ -162,7 +166,11 @@ export abstract class BaseMultiCombobox extends CollectionBaseInput implements A
 
     /** Sets title attribute to addon button. */
     @Input()
-    addonIconTitle: string = null;
+    addonIconTitle = 'Select Options';
+
+    /** Sets invalid entry message. */
+    @Input()
+    invalidEntryMessage = 'Invalid entry';
 
     /** Event emitted when item is selected. */
     @Output()
@@ -184,24 +192,28 @@ export abstract class BaseMultiCombobox extends CollectionBaseInput implements A
     @ContentChildren(TemplateDirective)
     customTemplates: QueryList<TemplateDirective>;
 
-    /** @hidden
+    /**
+     * @hidden
      * Custom Option item Template.
-     * */
+     */
     optionItemTemplate: TemplateRef<any>;
 
-    /** @hidden
+    /**
+     * @hidden
      * Custom Group Header item Template.
-     * */
+     */
     groupItemTemplate: TemplateRef<any>;
 
-    /** @hidden
+    /**
+     * @hidden
      * Custom Secondary item Template.
-     * */
+     */
     secondaryItemTemplate: TemplateRef<any>;
 
-    /** @hidden
+    /**
+     * @hidden
      * Custom Selected option item Template.
-     * */
+     */
     selectedItemTemplate: TemplateRef<any>;
 
     /** @hidden */
@@ -212,9 +224,6 @@ export abstract class BaseMultiCombobox extends CollectionBaseInput implements A
      * Whether "contentDensity" is "compact".
      */
     isCompact: boolean = this._contentDensity === 'compact';
-
-    /** @hidden */
-    controlTemplate: TemplateRef<any>;
 
     /** @hidden */
     listTemplate: TemplateRef<any>;
@@ -244,35 +253,41 @@ export abstract class BaseMultiCombobox extends CollectionBaseInput implements A
     /** Whether the Multi Input is opened. */
     isOpen = false;
 
-    /** @hidden
+    /**
+     * @hidden
      * List of matched suggestions
-     * */
+     */
     _suggestions: SelectableOptionItem[];
 
-    /** @hidden
+    /**
+     * @hidden
      * Grouped suggestions mapped to array.
-     * */
+     */
     _flatSuggestions: SelectableOptionItem[];
 
     /** @hidden */
     _fullFlatSuggestions: SelectableOptionItem[];
 
-    /** @hidden
+    /**
+     * @hidden
      * List of selected suggestions
-     * */
+     */
     _selectedSuggestions: SelectableOptionItem[];
 
-    /** @hidden
+    /**
+     * @hidden
      * Max width of list container
-     * */
-    maxWidth?: number;
+     */
+    maxWidth: number;
 
-    /** @hidden
+    /**
+     * @hidden
      * Min width of list container
-     * */
-    minWidth?: number;
+     */
+    minWidth: number;
 
-    /** @hidden
+    /**
+     * @hidden
      * Need for opening mobile version
      */
     openChange = new Subject<boolean>();
@@ -281,24 +296,24 @@ export abstract class BaseMultiCombobox extends CollectionBaseInput implements A
     selectedShown$ = new BehaviorSubject(false);
 
     /** @hidden */
-    isSearchInvalid = false;
-
-    /** @hidden */
-    isListEmpty = true;
-
-    /** @hidden */
     protected _dataSource: FdpMultiComboboxDataSource<any>;
 
     /** @hidden */
     private _inputTextValue: string;
+
     /** @hidden */
     private _matchingStrategy: MatchingStrategy = this.multiComboboxConfig.matchingStrategy;
+
     /** @hidden */
     private _dsSubscription?: Subscription;
+
     /** @hidden */
     private _element: HTMLElement = this.elementRef.nativeElement;
-    /** @hidden
-     * Keys, that won't trigger the popover's open state, when dispatched on search input. */
+
+    /**
+     * @hidden
+     * Keys, that won't trigger the popover's open state, when dispatched on search input.
+     */
     private readonly _nonOpeningKeys: number[] = [
         BACKSPACE,
         ESCAPE,
@@ -311,6 +326,15 @@ export abstract class BaseMultiCombobox extends CollectionBaseInput implements A
         DOWN_ARROW,
         LEFT_ARROW
     ];
+
+    /** @hidden */
+    private _timerSub$: Subscription;
+
+    /** @hidden */
+    private _previousState: 'success' | 'error' | 'warning' | 'default' | 'information';
+
+    /** @hidden */
+    private _previousStateMessage: string | SafeHtml;
 
     /** @hidden */
     private _displayFn = (value: any): string => this.displayValue(value);
@@ -361,19 +385,22 @@ export abstract class BaseMultiCombobox extends CollectionBaseInput implements A
         }
     }
 
-    /** @hidden
+    /**
+     * @hidden
      * Method to set input text as item label.
-     * */
+     */
     abstract setInputTextFromOptionItem(item: SelectableOptionItem): void;
 
-    /** @hidden
+    /**
+     * @hidden
      * Toggle item selection.
-     * */
+     */
     abstract toggleSelection(item: SelectableOptionItem): void;
 
-    /** @hidden
+    /**
+     * @hidden
      * Toggle item selection by input text value.
-     * */
+     */
     abstract toggleSelectionByInputText(): void;
 
     /** write value for ControlValueAccessor */
@@ -385,7 +412,7 @@ export abstract class BaseMultiCombobox extends CollectionBaseInput implements A
     }
 
     /** @hidden */
-    popoverOpenChangeHandle(isOpen): void {
+    popoverOpenChangeHandle(isOpen: boolean): void {
         this.isOpen = isOpen;
     }
 
@@ -427,6 +454,7 @@ export abstract class BaseMultiCombobox extends CollectionBaseInput implements A
         if (text) {
             this.open();
         }
+
         const map = new Map();
         map.set('query', text);
         map.set('limit', 12);
@@ -482,7 +510,7 @@ export abstract class BaseMultiCombobox extends CollectionBaseInput implements A
             event.stopPropagation();
 
             this.showList(false);
-        } else if (!event.ctrlKey && !KeyUtil.isKeyCode(event, this._nonOpeningKeys)) {
+        } else if (!KeyUtil.isKeyCode(event, [...this._nonOpeningKeys, CONTROL])) {
             this.showList(true);
             const acceptedKeys = !KeyUtil.isKeyType(event, 'alphabetical') && !KeyUtil.isKeyType(event, 'numeric');
             if (this.isEmptyValue && acceptedKeys) {
@@ -561,10 +589,10 @@ export abstract class BaseMultiCombobox extends CollectionBaseInput implements A
             return;
         }
 
-        const activeValue: SelectableOptionItem = this._getSelectItemByInputValue(this.inputText);
-        const index: number = this._flatSuggestions.findIndex((value) => value === activeValue);
+        const activeValue = this._getSelectItemByInputValue(this.inputText);
+        const index = this._flatSuggestions.findIndex((value) => value === activeValue);
         const position = !this.inputText && offset === -1 ? this._flatSuggestions.length - 1 : index + offset;
-        const item: SelectableOptionItem = this._flatSuggestions[position];
+        const item = this._flatSuggestions[position];
 
         if (item) {
             this.setInputTextFromOptionItem(item);
@@ -619,12 +647,14 @@ export abstract class BaseMultiCombobox extends CollectionBaseInput implements A
          */
         this._dsSubscription = initDataSource
             .open()
-            .pipe(
-                takeUntil(this._destroyed),
-                tap((data) => (this.isListEmpty = !data?.length)),
-                filter((data) => !!data.length)
-            )
+            .pipe(takeUntil(this._destroyed))
             .subscribe((data) => {
+                if (data.length === 0) {
+                    this._processingEmptyData();
+
+                    return;
+                }
+
                 this._suggestions = this._convertToOptionItems(data);
                 this._flatSuggestions = this.isGroup ? this._flattenGroups(this._suggestions) : this._suggestions;
 
@@ -633,11 +663,8 @@ export abstract class BaseMultiCombobox extends CollectionBaseInput implements A
                     isInitDataSource = false;
                 }
 
-                const isSelectedShown = this.selectedShown$.getValue();
-
-                if (isSelectedShown && this._selectedSuggestions.length > 0) {
-                    const selectedSuggestionsLength = this._selectedSuggestions.length;
-
+                const selectedSuggestionsLength = this._selectedSuggestions.length;
+                if (selectedSuggestionsLength > 0) {
                     for (let i = 0; i < selectedSuggestionsLength; i++) {
                         const selectedSuggestion = this._selectedSuggestions[i];
                         const idx = this._suggestions.findIndex((item) => equal(item.value, selectedSuggestion.value));
@@ -672,6 +699,45 @@ export abstract class BaseMultiCombobox extends CollectionBaseInput implements A
         initDataSource.match(map);
 
         return initDataSource;
+    }
+
+    /** @hidden */
+    private _processingEmptyData(): void {
+        this.inputText = this.inputText.slice(0, -1);
+
+        this._setInvalidEntry();
+
+        if (this._timerSub$) {
+            this._timerSub$.unsubscribe();
+        }
+
+        this._timerSub$ = timer(3000).subscribe(() => this._unsetInvalidEntry());
+    }
+
+    /** @hidden */
+    private _setInvalidEntry(): void {
+        if (this._previousState || this._previousStateMessage) {
+            return;
+        }
+
+        this._previousState = this.state;
+        this.state = 'error';
+
+        this._previousStateMessage = this.stateMessage;
+        this.stateMessage = this.invalidEntryMessage;
+
+        this._cd.markForCheck();
+    }
+
+    /** @hidden */
+    private _unsetInvalidEntry(): void {
+        this.state = this._previousState;
+        this._previousState = null;
+
+        this.stateMessage = this._previousStateMessage;
+        this._previousStateMessage = null;
+
+        this._cd.markForCheck();
     }
 
     /** @hidden */
@@ -788,6 +854,7 @@ export abstract class BaseMultiCombobox extends CollectionBaseInput implements A
             } else {
                 selectItem.children = this._convertObjectsToDefaultOptionItems(currentGroup);
             }
+
             return selectItem;
         });
     }
@@ -849,9 +916,10 @@ export abstract class BaseMultiCombobox extends CollectionBaseInput implements A
         return selectItems;
     }
 
-    /** @hidden
+    /**
+     * @hidden
      * Assign custom templates
-     * */
+     */
     private _assignCustomTemplates(): void {
         this.customTemplates.forEach((template) => {
             switch (template.getName()) {
