@@ -40,7 +40,10 @@ import { FormFieldControl, BaseInput, FormField, ControlState } from '@fundament
     templateUrl: './date-picker.component.html',
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    providers: [{ provide: FormFieldControl, useExisting: PlatformDatePickerComponent, multi: true }]
+    providers: [{ provide: FormFieldControl, useExisting: PlatformDatePickerComponent, multi: true }],
+    host: {
+        '(blur)': 'onTouched()'
+    }
 })
 export class PlatformDatePickerComponent<D> extends BaseInput {
     /**
@@ -282,7 +285,6 @@ export class PlatformDatePickerComponent<D> extends BaseInput {
      */
     handleDateChange(value: D | DateRange<D>): void {
         this.value = value;
-        this.onTouched();
 
         if (this.type === 'single' && !this.value && !this.allowNull) {
             this._datePickerValid = false;
