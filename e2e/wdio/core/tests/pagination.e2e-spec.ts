@@ -1,6 +1,5 @@
 import { PaginationPo } from '../pages/pagination.po';
 import {
-    browserIsSafari,
     click,
     doesItExist,
     getAttributeByName,
@@ -67,11 +66,12 @@ describe('Pagination test suite:', () => {
             pause(2000);
             expect(getText(basicPaginationText).trim()).toBe(basicPaginationTestArr[0]);
 
-            click(basicPaginationExample + pages);
+            click(basicPaginationExample + pages, 1);
             // pause for the new text to load
             pause(2000);
             expect(getText(basicPaginationText).trim()).toBe(basicPaginationTestArr[1]);
-            click(basicPaginationExample + pages, 3);
+
+            click(basicPaginationExample + pages, 4);
             // pause for the new text to load
             pause(2000);
             expect(getText(basicPaginationText).trim()).toBe(basicPaginationTestArr[2]);
@@ -99,12 +99,13 @@ describe('Pagination test suite:', () => {
 
         it('should check disabled previous and next links', () => {
             scrollIntoView(basicPaginationExample);
+
             click(basicPaginationExample + standardButton);
             // pause for the new text to load
             pause(2000);
             expect(getAttributeByName(linkPrevious, 'aria-disabled')).toBe('true');
 
-            click(basicPaginationExample + pages, 3);
+            click(basicPaginationExample + pages, 4);
             // pause for the new text to load
             pause(2000);
             expect(getAttributeByName(linkNext, 'aria-disabled')).toBe('true');
@@ -114,12 +115,13 @@ describe('Pagination test suite:', () => {
     describe('Check Pagination showing items example', () => {
         it('should check selected pages by clicking options', () => {
             scrollIntoView(showingItemsPaginationExample);
-            click(showingItemsPaginationExample + pages);
+
+            click(showingItemsPaginationExample + pages, 1);
             expect(getText(showingItemsPaginationExample + showingItemsPaginationText).trim()).toBe(
                 itemPaginationTestArr[1]
             );
 
-            click(showingItemsPaginationExample + pages, 1);
+            click(showingItemsPaginationExample + pages, 2);
             expect(getText(showingItemsPaginationExample + showingItemsPaginationText).trim()).toBe(
                 itemPaginationTestArr[2]
             );
@@ -139,7 +141,7 @@ describe('Pagination test suite:', () => {
         });
 
         it('should check disabled previous and next links', () => {
-            checkArrowButtons(showingItemsPaginationExample, 3);
+            checkArrowButtons(showingItemsPaginationExample, 4);
         });
     });
 
@@ -284,9 +286,13 @@ describe('Pagination test suite:', () => {
 
     function checkArrowButtons(example: string, index: number = 0): void {
         scrollIntoView(example);
+
+        click(example + pages);
         expect(getAttributeByName(example + linkPrevious, 'aria-disabled')).toBe('true');
+
         click(example + pages, index);
         expect(getAttributeByName(example + linkNext, 'aria-disabled')).toBe('true');
+
         refreshPage();
     }
 
