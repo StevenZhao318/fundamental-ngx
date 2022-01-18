@@ -16,6 +16,7 @@ import { BarModule } from '@fundamental-ngx/core/bar';
 import { FlexibleColumnLayoutModule } from '@fundamental-ngx/core/flexible-column-layout';
 import { DynamicPageModule } from '@fundamental-ngx/core/dynamic-page';
 import { SegmentedButtonModule } from '@fundamental-ngx/core/segmented-button';
+import { DynamicPageDynamicContainerHeightExampleComponent } from './dynamic-page-examples/dynamic-page-dynamic-container-height-example/dynamic-page-dynamic-container-height-example.component';
 
 const routes: Routes = [
     {
@@ -46,7 +47,8 @@ const routes: Routes = [
         DynamicPageExampleComponent,
         DynamicPageTabsExampleComponent,
         DynamicPageColumnLayoutExampleComponent,
-        DynamicPageResponsiveExampleComponent
+        DynamicPageResponsiveExampleComponent,
+        DynamicPageDynamicContainerHeightExampleComponent
     ]
 })
 export class DynamicPageDocsModule {}
