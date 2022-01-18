@@ -522,6 +522,13 @@ export const ROUTES: Routes = [
                 path: 'scrollbar',
                 loadChildren: () =>
                     import('./component-docs/scrollbar/scrollbar-docs.module').then((m) => m.ScrollbarDocsModule)
+            },
+            {
+                path: 'poster-editor',
+                loadChildren: () =>
+                    import('./component-docs/poster-editor/poster-editor-docs.module').then(
+                        (m) => m.PosterEditorDocsModule
+                    )
             }
         ]
     }

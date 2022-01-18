@@ -89,6 +89,7 @@ import { MicroProcessFlowModule } from '@fundamental-ngx/core/micro-process-flow
 import { TimelineModule } from '@fundamental-ngx/core/timeline';
 import { ProgressIndicatorModule } from '@fundamental-ngx/core/progress-indicator';
 import { ScrollbarModule } from '@fundamental-ngx/core/scrollbar';
+import { CorePosterEditorModule } from '@fundamental-ngx/fd/poster-editor';
 
 @NgModule({
     imports: [CommonModule, FormsModule],
@@ -184,7 +185,8 @@ import { ScrollbarModule } from '@fundamental-ngx/core/scrollbar';
         MicroProcessFlowModule,
         TimelineModule,
         ProgressIndicatorModule,
-        ScrollbarModule
+        ScrollbarModule,
+        CorePosterEditorModule
     ]
 })
 export class FundamentalNgxCoreModule {}
