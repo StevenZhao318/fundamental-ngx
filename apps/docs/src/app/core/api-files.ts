@@ -400,5 +400,6 @@ export const API_FILES = {
         'TimelineNodeActionDirective',
         'TimelineHeaderInfoSubTitleDirective'
     ],
-    scrollbar: ['ScrollbarComponent']
+    scrollbar: ['ScrollbarComponent'],
+    posterEditor: ['PosterEditorComponent']
 };
